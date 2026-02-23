@@ -16,8 +16,8 @@ import logins
 ACCOUNTS_FILE = "accounts.txt"
 DONE_FILE = "accounts_done.txt"
 
-# IMPORTANT: Update this path
-SERVICE_PATH = logins.driver_path
+# IMPORTANT: Update this pathgit branch -M main
+Driver_path = logins.driver_path
 
 # --- Utility Functions ---
 
@@ -51,13 +51,13 @@ def generate_seeded_password(seed_string, length=12):
 
 def setup_driver():
     """Initializes and returns the configured Chrome WebDriver."""
-    service = Service(SERVICE_PATH)
+
     options = Options()
     options.add_argument('--log-level=3')
     options.add_experimental_option("detach", True)
     
     try:
-        driver = webdriver.Chrome(service=service, options=options)
+        driver = webdriver.Chrome(Driver_path, options=options)
         driver.maximize_window()
         return driver
     except Exception as e:
@@ -103,7 +103,11 @@ def panel(driver):
         )
         domains.click()
         time.sleep(2)
-        vfemaii = driver.find_element(By.XPATH, "//li[normalize-space(text())='@vfemaii.net']")
+        vfemaii = driver.find_element(
+        By.XPATH,
+        f'//li[normalize-space(text())="{logins.Domain}"]'
+        )
+
         vfemaii.click()
         
         return True # Initial setup succeeded
@@ -120,7 +124,7 @@ def process_account(driver, account):
 
 
     EMAIL_PASSWORD = generate_seeded_password(account)
-    email = account + '@vfemaiI.net'
+    email = account + logins.Domain
 
     # print(f"\n--- Processing {email} ---")
 
@@ -128,15 +132,19 @@ def process_account(driver, account):
     input_adress.clear()
     input_adress.send_keys(account)
 
-    create_email_button = driver.find_element(By.XPATH, '//*[@id="newaddress"]/section/div/button')
-    create_email_button.click()
-
     search = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//*[@id="address-list"]/div[1]/div/div/div/input'))
     )
+    time.sleep(0.5)
     search.clear()
     search.send_keys(email)
-    time.sleep(1)
+
+    create_email_button = driver.find_element(By.XPATH, '//*[@id="newaddress"]/section/div/button')
+    create_email_button.click()
+    
+    # time.sleep()
+
+    time.sleep(2.5)
 
     text_el = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, f"//*[contains(text(), '{email.lower()}')]"))
@@ -151,7 +159,7 @@ def process_account(driver, account):
     save_button = level5.find_element(By.CSS_SELECTOR, "button.btn.btn-success.px-3.d-none.d-lg-block")
     save_button.click()
 
-    time.sleep(5)
+    time.sleep(0.5)
 
     # return both success + output line
     output_line = f"{email}:{EMAIL_PASSWORD}"
